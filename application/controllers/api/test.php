@@ -5,6 +5,8 @@ class Test extends CI_Controller {
 	function __construct()
 	{
 		parent::__construct();
+		
+		$this->load->model('User_m');
 	}
 
 	//fallback function, if no function specified
@@ -14,6 +16,7 @@ class Test extends CI_Controller {
 	}
 	function test2(){
 		$arr = array(
+			'users' => $this->User_m->retrieve(),
 			'pet_name' => 'Cat',
 			'name' => 'Whiskers'
 		);
