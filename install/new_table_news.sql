@@ -1,4 +1,4 @@
-USE cityofteufort;
+USE cs446_project;
 
 CREATE TABLE `news` (
  `id` integer NOT NULL AUTO_INCREMENT,
