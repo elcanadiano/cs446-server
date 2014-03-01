@@ -12,6 +12,7 @@ class Test extends CI_Controller {
 	{
 		echo "Index";
 	}
+
 	function test2(){
 		$arr = array(
 			'pet_name' => 'Cat',
@@ -21,4 +22,13 @@ class Test extends CI_Controller {
 		echo json_encode($arr);
 	}
 
+	function dummypost() {
+		$cat = $this->input->post('cat');
+
+		$arr = array(
+			'cat' => $cat
+		);
+
+		echo json_encode($arr);
+	}
 }
