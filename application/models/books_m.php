@@ -2,14 +2,33 @@
 Class Books_m extends CI_Model
 {
 	/**
+	 * Retrieve all books.
+	 *
+	 * @return  object
+	 */
+	function retrieve()
+	{
+		$query = $this->db->select('isbn_13, title, author, publisher, edition, msrp, year')
+			->from('books')
+			->order_by('isbn_13');
+
+		return $query->get()->result();
+	}
+
+	/**
 	 * Attempt to retrieve a book by ISBN.
 	 *
 	 * @return  object
 	 */
-	function retrieve_by_isbn()
+	function retrieve_by_isbn($isbn_13)
 	{
-		$query = $this->db->select('isbn_13, title, author, edition, msrp, year')
+		$where = array(
+			'isbn_13' => $isbn_13
+		);
+
+		$query = $this->db->select('isbn_13, title, author, publisher, edition, msrp, year')
 			->from('books')
+			->where($where)
 			->limit(1);
 
 		return $query->get()->result();
@@ -27,6 +46,9 @@ Class Books_m extends CI_Model
 	 * @param   author
 	 *			The author(s) (optional)
 	 * 
+	 * @param   publisher
+	 *			The publisher
+	 * 
 	 * @param   edition
 	 *			The edition of the book (if applicable)
 	 * 
@@ -38,12 +60,13 @@ Class Books_m extends CI_Model
 	 *
 	 * @return  boolean
 	 */
-	function insert($isbn_13, $title, $author='', $edition=0, $msrp=0, $year=0)
+	function insert($isbn_13, $title, $author='', $publisher='', $edition=0, $msrp=0, $year=0)
 	{
 		$obj = array(
 			'isbn_13' => $isbn_13,
 			'title' => $title,
-			'date' => $author,
+			'author' => $author,
+			'publisher' => $publisher,
 			'edition' => $edition,
 			'msrp' => $msrp,
 			'year' => $year

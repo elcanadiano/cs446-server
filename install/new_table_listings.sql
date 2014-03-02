@@ -2,7 +2,7 @@ USE cs446_project;
 
 CREATE TABLE `listings` (
  `id` integer NOT NULL AUTO_INCREMENT,
- `isbn_13` bigint NOT NULL,
+ `isbn_13` char(13) NOT NULL,
  `listing_price` decimal(10, 2) NOT NULL,
  `condition` integer,
  `is_active` boolean NOT NULL DEFAULT FALSE,

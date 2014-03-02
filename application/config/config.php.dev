@@ -357,6 +357,16 @@ $config['rewrite_short_tags'] = FALSE;
 */
 $config['proxy_ips'] = '';
 
+/*
+|--------------------------------------------------------------------------
+| ISBNDB and Amazon API Keys
+|--------------------------------------------------------------------------
+|
+| Related Key information for ISBNDB and Amazon APIs.
+|
+*/
+$config['isbndb_key'] = '';
+
 
 /* End of file config.php */
 /* Location: ./application/config/config.php */

@@ -127,6 +127,7 @@ class Secretshit extends C_Admin {
 	 */
 	function add_algorithms()
 	{
+		$key = $this->config->item('isbndb_key');
 		// Insert exactly three records for Introduction to Algorithms.
 		$book_info = $this->isbn_lib->get_from_isbndb('9780262033848', $key);
 
