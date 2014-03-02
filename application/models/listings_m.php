@@ -18,11 +18,12 @@ Class Listings_m extends CI_Model
 	function retrieve_listings_by_isbn($isbn, $lim=20, $offset=0)
 	{
 		$where = array(
-			'isbn_13' => $isbn
+			'l.isbn_13' => $isbn
 		);
 
-		$query = $this->db->select('id, isbn_13, listing_price, condition, is_active')
-			->from('listings')
+		$query = $this->db->select('l.id, l.isbn_13, b.title, b.author, l.listing_price, l.condition, l.is_active')
+			->from('listings l')
+			->join('books b', 'b.isbn_13' = 'l.isbn_13', 'inner')
 			->where($where)
 			->limit($lim, $offset);
 
