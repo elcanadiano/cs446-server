@@ -16,14 +16,15 @@ class Search extends CI_Controller {
 	}
 
 	// Send back what message is passed in
-	function test2($message)
+	function test2()
 	{
+		$message = $this->input->get('message', TRUE);
 		$arr = array(
 			'status' => array(
 				'status' => 'success',
 				'message' => ''
 			),
-			'data' = array(
+			'data' => array(
 				'message' => $message
 			)
 		);
