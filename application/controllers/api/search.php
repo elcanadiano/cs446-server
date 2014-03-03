@@ -7,6 +7,7 @@ class Search extends CI_Controller {
 		parent::__construct();
 		
 		$this->load->model('User_m');
+		$this->load->model('books_m','books');
 		$this->load->model('listings_m', 'listings');
 		$this->load->library('isbn_lib');
 	}
@@ -90,6 +91,23 @@ class Search extends CI_Controller {
 			)
 		);
 
+		echo json_encode($arr);
+	}
+
+	// Returns a JSON encoded array of all books
+	function get_all_books() {
+		$books = $this->books->retrieve();
+		
+		$arr = array(
+			'status' => array(
+				'status' => 'success',
+				'message' => ''
+			),
+			'data' => array(
+				'books' => $books
+			)
+		);
+	
 		echo json_encode($arr);
 	}
 }
