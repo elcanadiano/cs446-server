@@ -26,7 +26,7 @@ Class Books_m extends CI_Model
 			'isbn_13' => $isbn
 		);
 
-		$query = $this->db->select('title')
+		$query = $this->db->select('isbn_13, title, author, publisher, edition, msrp, year')
 			->from('books')
 			->where($where)
 			->limit(1);
