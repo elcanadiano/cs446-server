@@ -33,10 +33,10 @@ class Search extends CI_Controller {
 		echo json_encode($arr);
 	}
 
-	// BOOKS
+	// Returns a JSON encoded array of books with a given ISBN
 	function search_book($isbn, $limit=20, $offset=0)
 	{
-		// Validate ISBN. If ISBN-10, change to ISBN13
+		// Validate ISBN. If ISBN-10, change to ISBN-13
 		if (!$this->isbn_lib->is_isbn_13_valid($isbn))
 		{
 			if($this->isbn_lib->is_isbn_10_valid($isbn))
@@ -60,8 +60,26 @@ class Search extends CI_Controller {
 			}
 		}
 
+		// Retrieves listings with a given ISBN
 		$listings = $this->listings->retrieve_listings_by_isbn($isbn, $limit, $offset);
 
+		$arr = array(
+			'status' => array(
+				'status' => 'success',
+				'message' => ''
+			),
+			'data' => array(
+				'listings' => $listings
+			)
+		);
+
+		echo json_encode($arr);
+	}
+
+	// Returns a JSON encoded array of all listings
+	function get_all_listings() {
+		$listings = $this->listings->retrieve_all_listings();
+		
 		$arr = array(
 			'status' => array(
 				'status' => 'success',

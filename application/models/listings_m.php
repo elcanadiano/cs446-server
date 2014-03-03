@@ -31,6 +31,15 @@ Class Listings_m extends CI_Model
 	}
 
 	/**
+	 * Retrieves all listings from the database
+ 	 */
+	function retrieve_all_listings() {
+		$query = $this->db->get('listings');
+
+		return $query->result();
+	}
+
+	/**
 	 * Inserts a new listing into the database.
 	 */
 	function insert($isbn_13, $listing_price, $condition=0, $is_active=FALSE)

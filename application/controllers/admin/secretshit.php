@@ -56,7 +56,6 @@ class Secretshit extends C_Admin {
 						$book_info = $this->isbn_lib->get_from_isbndb($buffer, $key);
 
 						print_r($book_info);
-
 						if (isset($book_info->data))
 						{
 							foreach ($book_info->data as $book)
