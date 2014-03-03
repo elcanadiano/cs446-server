@@ -34,6 +34,47 @@ class Search extends CI_Controller {
 		echo json_encode($arr);
 	}
 
+	function get_unique_book_title($isbn) 
+	{
+		// Validate ISBN. If ISBN-10, change to ISBN-13
+                if (!$this->isbn_lib->is_isbn_13_valid($isbn))
+                {
+                        if($this->isbn_lib->is_isbn_10_valid($isbn))
+                        {
+                                $isbn = str_replace(array('x', 'X'), '', $isbn);
+
+                                $isbn = '978' . $isbn;
+                        }
+                        else
+                        {
+                                $arr = array(
+                                        'status' => array(
+                                                'status' => 'error',
+                                                'message' => 'Invalid ISBN'
+                                        ),
+                                        'data' => array()
+                                );
+
+                                echo json_encode($arr);
+                                return;
+                        }
+                }
+		// Retrieves book title of a given ISBN
+                $book = $this->listings->retrieve_unique_book_title($isbn);
+
+                $arr = array(
+                        'status' => array(
+                                'status' => 'success',
+                                'message' => ''
+                        ),
+                        'data' => array(
+                                'book' => $book
+                        )
+                );
+
+                echo json_encode($arr);
+	}
+
 	// Returns a JSON encoded array of books with a given ISBN
 	function search_book($isbn, $limit=20, $offset=0)
 	{

@@ -30,6 +30,22 @@ Class Listings_m extends CI_Model
 		return $query->get()->result();
 	}
 
+	// Retrieves only 1 listing for a given ISBN
+	function retrieve_unique_book_title($isbn) 
+	{
+		$where = array(
+			'l.isbn_13' => $isbn
+		);
+
+		$query = $this->db->select('b.title')
+			->from('books b')
+			->join('listings l', 'l.isbn_13 = b.isbn_13', 'inner')
+			->where($where)
+			->group_by('b.title');
+		
+		return $query->get()->result();
+	}
+
 	/**
 	 * Retrieves all listings from the database
  	 */
