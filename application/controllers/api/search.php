@@ -78,7 +78,8 @@ class Search extends CI_Controller {
 	}
 
 	// Returns a JSON encoded array of all listings
-	function get_all_listings() {
+	function get_all_listings()
+	{
 		$listings = $this->listings->retrieve_all_listings();
 		
 		$arr = array(
@@ -95,7 +96,8 @@ class Search extends CI_Controller {
 	}
 
 	// Returns a JSON encoded array of all books
-	function get_all_books() {
+	function get_all_books()
+	{
 		$books = $this->books->retrieve();
 		
 		$arr = array(
