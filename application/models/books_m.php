@@ -16,6 +16,25 @@ Class Books_m extends CI_Model
 	}
 
 	/**
+	 * Retrieve a unique book.
+	 *
+	 * @return  object
+	 */
+	function retrieve_unique_book($isbn) 
+	{
+		$where = array(
+			'isbn_13' => $isbn
+		);
+
+		$query = $this->db->select('title')
+			->from('books')
+			->where($where)
+			->limit(1);
+		
+		return $query->get()->result();
+	}
+
+	/**
 	 * Attempt to retrieve a book by ISBN.
 	 *
 	 * @return  object

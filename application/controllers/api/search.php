@@ -18,61 +18,80 @@ class Search extends CI_Controller {
 		echo "Index";
 	}
 
-	// Send back what message is passed in
-	function test2()
-	{
-		$message = $this->input->get('message', TRUE);
-		$arr = array(
-			'status' => array(
-				'status' => 'success',
-				'message' => ''
-			),
-			'data' => array(
-				'message' => $message
-			)
-		);
-		echo json_encode($arr);
-	}
-
-	function get_unique_book_title($isbn) 
+	/**
+	 * Gets Unique Book Information
+	 *
+	 * @param  isbn
+	 *         The ISBN
+	 */
+	function get_book($isbn) 
 	{
 		// Validate ISBN. If ISBN-10, change to ISBN-13
-                if (!$this->isbn_lib->is_isbn_13_valid($isbn))
-                {
-                        if($this->isbn_lib->is_isbn_10_valid($isbn))
-                        {
-                                $isbn = str_replace(array('x', 'X'), '', $isbn);
+		if (!$this->isbn_lib->is_isbn_13_valid($isbn))
+		{
+				if($this->isbn_lib->is_isbn_10_valid($isbn))
+				{
+						$isbn = str_replace(array('x', 'X'), '', $isbn);
 
-                                $isbn = '978' . $isbn;
-                        }
-                        else
-                        {
-                                $arr = array(
-                                        'status' => array(
-                                                'status' => 'error',
-                                                'message' => 'Invalid ISBN'
-                                        ),
-                                        'data' => array()
-                                );
+						$isbn = '978' . $isbn;
+				}
+				else
+				{
+						$arr = array(
+								'status' => array(
+										'status' => 'error',
+										'message' => 'Invalid ISBN'
+								),
+								'data' => array()
+						);
 
-                                echo json_encode($arr);
-                                return;
-                        }
-                }
+						echo json_encode($arr);
+						return;
+				}
+		}
 		// Retrieves book title of a given ISBN
-                $book = $this->listings->retrieve_unique_book_title($isbn);
+		$book = $this->books->retrieve_unique_book($isbn);
 
-                $arr = array(
-                        'status' => array(
-                                'status' => 'success',
-                                'message' => ''
-                        ),
-                        'data' => array(
-                                'book' => $book
-                        )
-                );
+		// If there is no such book in our database, retrieve it from a third-party
+		// library and then insert it into the database.
+		if (!$book)
+		{
+			$key = $this->config->item('isbndb_key');
+			$isbndb_book = $this->isbn_lib->get_from_isbndb($isbn, $key)->data[0];
 
-                echo json_encode($arr);
+			$isbn_13 = $isbndb_book->isbn13;
+			$title = $isbndb_book->title;
+			$author = 'Pilkey, Dav';
+			$publisher = $isbndb_book->publisher_name;
+
+			// TODO: implement the other stuff.
+
+			// And this is the book information!
+			$book = array(
+				'isbn_13' => $isbn_13,
+				'title' => $title,
+				'author' => $author,
+				'publisher' => $publisher,
+				'edition' => NULL,
+				'msrp' => NULL,
+				'year' => NULL
+			);
+
+			// Now let's insert the book.
+			$this->books->insert($isbn_13, $title, $author, $publisher);
+		}
+
+		$arr = array(
+				'status' => array(
+						'status' => 'success',
+						'message' => ''
+				),
+				'data' => array(
+						'book' => $book
+				)
+		);
+
+		echo json_encode($arr);
 	}
 
 	// Returns a JSON encoded array of books with a given ISBN
