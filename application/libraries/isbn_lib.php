@@ -73,8 +73,6 @@ class Isbn_lib {
 		// Get the contents in JSON.
 		$json = file_get_contents($url);
 
-		echo $json;
-
 		return json_decode($json);
 	}
 }
