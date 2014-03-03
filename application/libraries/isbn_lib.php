@@ -20,6 +20,9 @@ class Isbn_lib {
 	 */
 	function is_isbn_13_valid($n)
 	{
+	    if (strlen($n) != 13)
+	    	return FALSE;
+
 	    $check = 0;
 	    for ($i = 0; $i < 13; $i+=2) $check += substr($n, $i, 1);
 	    for ($i = 1; $i < 12; $i+=2) $check += 3 * substr($n, $i, 1);

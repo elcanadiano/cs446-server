@@ -27,7 +27,7 @@ class Secretshit extends C_Admin {
 	 */
 	function index()
 	{
-		echo 'Kittens'
+		echo 'Kittens';
 	}
 
 	/**

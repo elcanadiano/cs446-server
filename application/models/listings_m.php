@@ -23,7 +23,7 @@ Class Listings_m extends CI_Model
 
 		$query = $this->db->select('l.id, l.isbn_13, b.title, b.author, l.listing_price, l.condition, l.is_active')
 			->from('listings l')
-			->join('books b', 'b.isbn_13' = 'l.isbn_13', 'inner')
+			->join('books b', 'b.isbn_13 = l.isbn_13', 'inner')
 			->where($where)
 			->limit($lim, $offset);
 
