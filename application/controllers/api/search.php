@@ -10,6 +10,7 @@ class Search extends CI_Controller {
 		$this->load->model('books_m','books');
 		$this->load->model('listings_m', 'listings');
 		$this->load->library('isbn_lib');
+		$this->load->library('amazon_lib');
 	}
 
 	//fallback function, if no function specified
@@ -24,30 +25,229 @@ class Search extends CI_Controller {
 	 * @param  isbn
 	 *         The ISBN
 	 */
+
+	function get_book_amazon($isbn)
+	{
+		// Validate. If ISBN-10, change to ISBN-13
+		if (!$this->isbn_lib->is_isbn_13_valid($isbn))
+		{
+			if($this->isbn_lib->is_isbn_10_valid($isbn))
+			{
+				$isbn = str_replace(array('x', 'X'), '', $isbn);
+				$isbn = '978' . $isbn;
+			}
+			else
+			{
+				$arr = array(
+					'status' => array(
+					'status' => 'error',
+					'message' => 'Invalid ISBN'
+				),
+				'data' => array()
+				);
+
+				echo json_encode($arr);
+				return;
+			}
+		}
+		
+		// Retrieves book title of a given ISBN
+		$book = $this->books->retrieve_unique_book($isbn);
+
+		// If there is no such book in our database, retrieve it from a third-party library and then insert it into the database.
+		if (!$book)
+		{
+			$amazon = $this->amazon_lib->get_info_from_amazon($isbn);
+			
+			$title = "";		// Title
+			$author = "";		// Author
+			$publisher = "";	// Publisher
+			$edition = "";		// Edition
+			$price = "";		// FormattedPrice(XXX$ XX.XX);
+			$year = "";		// PublicationDate(YYYY-MM-DD)
+			
+			// Get title
+			$pos1 = strpos($amazon, "<Title>");
+			
+			if (!$pos1) 
+			{
+				$arr = array(
+                                	'status' => array(
+                                        	'status' => 'error',
+                                        	'message' => 'Could not find a title'
+                                        ),
+                                        'data' => array()
+                                );
+
+                                echo json_encode($arr);
+                                return;
+			} 
+			else
+			{
+				$pos2 = strpos($amazon, "</Title>");
+				$title = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
+			}
+
+			// Get Author
+			$pos1 = strpos($amazon, "<Author>");
+			
+			if (!$pos1) 
+			{
+				$arr = array(
+                                        'status' => array(
+                                                'status' => 'error',
+                                                'message' => 'Could not find an author'
+                                        ),
+                                        'data' => array()
+                                );
+	
+				echo json_encode($arr);
+				return;
+			} 
+			else 
+			{
+				$pos2 = strpos($amazon, "</Author>");
+				$author = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
+			}
+			
+			// Get Publisher
+			$pos1 = strpos($amazon, "<Publisher>");
+			
+			if (!$pos1) 
+			{
+				$arr = array(
+                                        'status' => array(
+                                                'status' => 'error',
+                                                'message' => 'Could not find a publisher'
+                                        ),
+                                        'data' => array()
+                                );
+
+				echo json_encode($arr);
+				return;
+			} 
+			else 
+			{
+				$pos2 = strpos($amazon, "</Publisher>");
+				$publisher = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
+			}
+
+			// Get Edition
+			$pos1 = strpos($amazon, "<Edition>");
+			
+			if (!$pos1) 
+			{
+				$arr = array(
+                                        'status' => array(
+                                                'status' => 'error',
+                                                'message' => 'Could not find an edition'
+                                        ),
+                                        'data' => array()
+                                );
+
+				echo json_encode($arr);
+				return;
+			} 
+			else 
+			{
+				$pos2 = strpos($amazon, "</Edition>");
+				$edition = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
+			}
+
+			// Get Year
+			$pos1 = strpos($amazon, "<PublicationDate>");
+			
+			if (!$pos1) 
+			{
+				$arr = array(
+                                        'status' => array(
+                                                'status' => 'error',
+                                                'message' => 'Could not find a year'
+                                        ),
+                                        'data' => array()
+                                );
+
+				echo json_encode($arr);
+				return;
+			} 
+			else 
+			{
+				$pos2 = strpos($amazon, "</PublicationDate");
+				$year = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
+				$year = substr($year, 0, 4);
+			}
+
+			// Get Price
+			$pos1 = strpos($amazon, "<FormattedPrice>");	
+			
+			if (!$pos1) 
+			{
+				$arr = array(
+                                        'status' => array(
+                                                'status' => 'error',
+                                                'message' => 'Could not find a price'
+                                        ),
+                                        'data' => array()
+                                );
+
+				echo json_encode($arr);
+			} 
+			else 
+			{
+				$pos2 = strpos($amazon, "</FormattedPrice>");
+				$price = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
+				$price = substr($price, strpos($price, " "));
+			}
+			
+			 $book = array(
+                                'isbn_13' => $isbn,
+                                'title' => $title,
+                                'author' => $author,
+                                'publisher' => $publisher,
+                                'edition' => $edition,
+                                'msrp' => $price,
+                                'year' => $year
+                        );
+
+			//TODO: Add book to database	
+		}
+
+		$arr = array(
+			'status' => array(
+				'status' => 'success',
+				'message' => ''
+			),
+			'data' => array(
+				'book' => $book
+			)
+		);
+		
+		echo json_encode($arr);
+	}
+
 	function get_book($isbn) 
 	{
 		// Validate ISBN. If ISBN-10, change to ISBN-13
 		if (!$this->isbn_lib->is_isbn_13_valid($isbn))
 		{
-				if($this->isbn_lib->is_isbn_10_valid($isbn))
-				{
-						$isbn = str_replace(array('x', 'X'), '', $isbn);
+			if($this->isbn_lib->is_isbn_10_valid($isbn))
+			{
+				$isbn = str_replace(array('x', 'X'), '', $isbn);
+				$isbn = '978' . $isbn;
+			}
+			else
+			{
+				$arr = array(
+					'status' => array(
+						'status' => 'error',
+						'message' => 'Invalid ISBN'
+					),
+					'data' => array()
+				);
 
-						$isbn = '978' . $isbn;
-				}
-				else
-				{
-						$arr = array(
-								'status' => array(
-										'status' => 'error',
-										'message' => 'Invalid ISBN'
-								),
-								'data' => array()
-						);
-
-						echo json_encode($arr);
-						return;
-				}
+				echo json_encode($arr);
+				return;
+			}
 		}
 		// Retrieves book title of a given ISBN
 		$book = $this->books->retrieve_unique_book($isbn);
@@ -58,7 +258,7 @@ class Search extends CI_Controller {
 		{
 			$key = $this->config->item('isbndb_key');
 			$isbndb_book = $this->isbn_lib->get_from_isbndb($isbn, $key)->data[0];
-
+			
 			$isbn_13 = $isbndb_book->isbn13;
 			$title = $isbndb_book->title;
 			$author = 'Pilkey, Dav';
@@ -82,13 +282,13 @@ class Search extends CI_Controller {
 		}
 
 		$arr = array(
-				'status' => array(
-						'status' => 'success',
-						'message' => ''
-				),
-				'data' => array(
-						'book' => $book
-				)
+			'status' => array(
+				'status' => 'success',
+				'message' => ''
+			),
+			'data' => array(
+				'book' => $book
+			)
 		);
 
 		echo json_encode($arr);
