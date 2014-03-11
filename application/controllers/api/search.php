@@ -134,18 +134,18 @@ class Search extends CI_Controller {
 			} // end for 
 	
 			$book = array(
-                                'isbn_13' => $isbn,
-                                'title' => $book_info[0],
-                                'author' => $book_info[1],
-                                'publisher' => $book_info[2],
-                                'edition' => $book_info[3],
-                                'msrp' => $book_info[4],
-                                'year' => $book_info[5],
+				'isbn_13' => $isbn,
+				'title' => $book_info[0],
+				'author' => $book_info[1],
+				'publisher' => $book_info[2],
+				'edition' => $book_info[3],
+				'msrp' => $book_info[4],
+				'year' => $book_info[5],
 				'amazon_link' => $book_info[6],
 				'image' => $book_info[7]
-                        );
+			);
 
-			//TODO: Add book to database	
+			//TODO: Add book to database
 		} // end if(!book)
 
 		$arr = array(
