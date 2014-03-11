@@ -15,15 +15,12 @@ class Amazon_lib {
 	function get_info_from_amazon($isbn_13)
 	{
 		$host = "webservices.amazon.ca";
-		$accessKeyId = "AKIAJOOEHP3JYETPUQDA";
-		$associateTag = "bumybo06-20";
-		$secretAccessKey = "H1oSOgIweSWSc8HANqPp1iz7cVc2QCWJjmX5lq5r";
 	
 		$timestamp = gmdate("Y-m-d\TH:i:s\Z");
 		$timestamp = str_replace(":", "%3A", $timestamp);
 
-		$canonicalQuery = "AWSAccessKeyId=".$accessKeyId;
-		$canonicalQuery .= "&AssociateTag=".$associateTag;
+		$canonicalQuery = "AWSAccessKeyId=".config_item('amazon_access_key');
+		$canonicalQuery .= "&AssociateTag=".config_item('amazon_associate_tag');
 		$canonicalQuery .= "&IdType=ISBN&ItemId=".$isbn_13;
 		$canonicalQuery .= "&Operation=ItemLookup";
 		$canonicalQuery .= "&ResponseGroup=Medium&SearchIndex=All";
@@ -35,7 +32,7 @@ class Amazon_lib {
 		$signature = base64_encode(hash_hmac(
 			"sha256",
 			$stringToSign,
-			$secretAccessKey,
+			config_item('amazon_secret_key'),
 			true));
 		$signature = str_replace("+", "%2B", $signature);
 		$signature = str_replace("=", "%3D", $signature);

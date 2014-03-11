@@ -59,154 +59,77 @@ class Search extends CI_Controller {
 		{
 			$amazon = $this->amazon_lib->get_info_from_amazon($isbn);
 			
-			$title = "";		// Title
-			$author = "";		// Author
-			$publisher = "";	// Publisher
-			$edition = "";		// Edition
-			$price = "";		// FormattedPrice(XXX$ XX.XX);
-			$year = "";		// PublicationDate(YYYY-MM-DD)
-			
-			// Get title
-			$pos1 = strpos($amazon, "<Title>");
-			
-			if (!$pos1) 
-			{
-				$arr = array(
-                                	'status' => array(
-                                        	'status' => 'error',
-                                        	'message' => 'Could not find a title'
-                                        ),
-                                        'data' => array()
-                                );
+			$book_info = array();
+		
+			$start_tags = array(
+				'<Title>',
+				'<Author>',
+				'<Publisher>',
+				'<Edition>',
+				'<FormattedPrice>',
+				'<PublicationDate>'
+			);
 
-                                echo json_encode($arr);
-                                return;
-			} 
-			else
-			{
-				$pos2 = strpos($amazon, "</Title>");
-				$title = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
-			}
+			$end_tags = array(
+				'</Title>',
+				'</Author>',
+				'</Publisher>',
+				'</Edition>',
+				'</FormattedPrice>',
+				'</PublicationDate>'
+			);
 
-			// Get Author
-			$pos1 = strpos($amazon, "<Author>");
-			
-			if (!$pos1) 
+			for ($i = 0; $i < sizeof($start_tags); $i++) 
 			{
-				$arr = array(
-                                        'status' => array(
-                                                'status' => 'error',
-                                                'message' => 'Could not find an author'
-                                        ),
-                                        'data' => array()
-                                );
+				$start_pos = strpos($amazon, $start_tags[$i]);
+				$end_pos = strpos($amazon, $end_tags[$i]);
+                                
+				if (!$start_pos || !$end_pos)
+				{
+					$what_tag = '';
+					if (!$start_pos)
+					{
+						$what_tag = substr(
+							$start_tags[$i],
+							1,
+							strlen($start_tags[$i]) - 2);
+					}
+					else // end_pos
+					{
+						$what_tag = substr(
+							$end_tags[$i],
+							2,
+							strlen($end_tags[$i]) - 3);
+					}
+
+					$arr = array(
+						'status' => array(
+							'status' => 'error',
+							'message' => 'Could not find a '.$what_tag
+						),
+						'data' => array()
+					);
+
+					echo json_encode($arr);
+					return;		
+				}
+				else
+				{
+					$endpos = strpos($amazon, $end_tags[$i]);
+					array_push(
+						$book_info, 
+						strip_tags(substr($amazon, $start_pos, ($end_pos - $start_pos))));
+				} // end else
+			} // end for 
 	
-				echo json_encode($arr);
-				return;
-			} 
-			else 
-			{
-				$pos2 = strpos($amazon, "</Author>");
-				$author = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
-			}
-			
-			// Get Publisher
-			$pos1 = strpos($amazon, "<Publisher>");
-			
-			if (!$pos1) 
-			{
-				$arr = array(
-                                        'status' => array(
-                                                'status' => 'error',
-                                                'message' => 'Could not find a publisher'
-                                        ),
-                                        'data' => array()
-                                );
-
-				echo json_encode($arr);
-				return;
-			} 
-			else 
-			{
-				$pos2 = strpos($amazon, "</Publisher>");
-				$publisher = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
-			}
-
-			// Get Edition
-			$pos1 = strpos($amazon, "<Edition>");
-			
-			if (!$pos1) 
-			{
-				$arr = array(
-                                        'status' => array(
-                                                'status' => 'error',
-                                                'message' => 'Could not find an edition'
-                                        ),
-                                        'data' => array()
-                                );
-
-				echo json_encode($arr);
-				return;
-			} 
-			else 
-			{
-				$pos2 = strpos($amazon, "</Edition>");
-				$edition = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
-			}
-
-			// Get Year
-			$pos1 = strpos($amazon, "<PublicationDate>");
-			
-			if (!$pos1) 
-			{
-				$arr = array(
-                                        'status' => array(
-                                                'status' => 'error',
-                                                'message' => 'Could not find a year'
-                                        ),
-                                        'data' => array()
-                                );
-
-				echo json_encode($arr);
-				return;
-			} 
-			else 
-			{
-				$pos2 = strpos($amazon, "</PublicationDate");
-				$year = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
-				$year = substr($year, 0, 4);
-			}
-
-			// Get Price
-			$pos1 = strpos($amazon, "<FormattedPrice>");	
-			
-			if (!$pos1) 
-			{
-				$arr = array(
-                                        'status' => array(
-                                                'status' => 'error',
-                                                'message' => 'Could not find a price'
-                                        ),
-                                        'data' => array()
-                                );
-
-				echo json_encode($arr);
-			} 
-			else 
-			{
-				$pos2 = strpos($amazon, "</FormattedPrice>");
-				$price = strip_tags(substr($amazon, $pos1, ($pos2 - $pos1)));
-				$price = substr($price, strpos($price, " "));
-			}
-			
-			 $book = array(
+			$book = array(
                                 'isbn_13' => $isbn,
-                                'title' => $title,
-                                'author' => $author,
-                                'publisher' => $publisher,
-                                'edition' => $edition,
-                                'msrp' => $price,
-                                'year' => $year
+                                'title' => $book_info[0],
+                                'author' => $book_info[1],
+                                'publisher' => $book_info[2],
+                                'edition' => $book_info[3],
+                                'msrp' => $book_info[4],
+                                'year' => $book_info[5]
                         );
 
 			//TODO: Add book to database	
