@@ -67,7 +67,9 @@ class Search extends CI_Controller {
 				'<Publisher>',
 				'<Edition>',
 				'<FormattedPrice>',
-				'<PublicationDate>'
+				'<PublicationDate>',
+				'<DetailPageURL',
+				'<LargeImage><URL>'
 			);
 
 			$end_tags = array(
@@ -76,14 +78,16 @@ class Search extends CI_Controller {
 				'</Publisher>',
 				'</Edition>',
 				'</FormattedPrice>',
-				'</PublicationDate>'
+				'</PublicationDate>',
+				'</DetailPageURL>',
+				'</URL>'
 			);
 
 			for ($i = 0; $i < sizeof($start_tags); $i++) 
 			{
 				$start_pos = strpos($amazon, $start_tags[$i]);
-				$end_pos = strpos($amazon, $end_tags[$i]);
-                                
+				$end_pos = strpos(substr($amazon, $start_pos), $end_tags[$i]) + $start_pos;
+				
 				if (!$start_pos || !$end_pos)
 				{
 					$what_tag = '';
@@ -124,7 +128,7 @@ class Search extends CI_Controller {
 						$end_pos -= 6; // Only want year
 					}
 
-					$element= strip_tags(substr($amazon, $start_pos, ($end_pos - $start_pos)));
+					$element = strip_tags(substr($amazon, $start_pos, ($end_pos - $start_pos)));
 					array_push($book_info, $element);
 				} // end else
 			} // end for 
@@ -136,7 +140,9 @@ class Search extends CI_Controller {
                                 'publisher' => $book_info[2],
                                 'edition' => $book_info[3],
                                 'msrp' => $book_info[4],
-                                'year' => $book_info[5]
+                                'year' => $book_info[5],
+				'amazon_link' => $book_info[6],
+				'image' => $book_info[7]
                         );
 
 			//TODO: Add book to database	
