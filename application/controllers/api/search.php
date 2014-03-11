@@ -115,10 +115,17 @@ class Search extends CI_Controller {
 				}
 				else
 				{
-					$endpos = strpos($amazon, $end_tags[$i]);
-					array_push(
-						$book_info, 
-						strip_tags(substr($amazon, $start_pos, ($end_pos - $start_pos))));
+					if ($i == 4) // price
+					{
+						$start_pos += 21; // Get rid of "CDN$ "
+					} 
+					else if ($i == 5) // Year
+					{
+						$end_pos -= 6; // Only want year
+					}
+
+					$element= strip_tags(substr($amazon, $start_pos, ($end_pos - $start_pos)));
+					array_push($book_info, $element);
 				} // end else
 			} // end for 
 	
@@ -133,7 +140,7 @@ class Search extends CI_Controller {
                         );
 
 			//TODO: Add book to database	
-		}
+		} // end if(!book)
 
 		$arr = array(
 			'status' => array(
