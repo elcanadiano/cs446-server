@@ -3,7 +3,7 @@ USE cs446_project;
 CREATE TABLE `books` (
  `isbn_13` char(13) NOT NULL,
  `title` varchar(256) NOT NULL,
- `author` varchar(256),
+ `authors` varchar(512),
  `publisher` varchar(256),
  `edition` varchar(64),
  `msrp` decimal(10, 2),

@@ -6,9 +6,9 @@ class Search extends CI_Controller {
 	{
 		parent::__construct();
 		
-		$this->load->model('User_m');
 		$this->load->model('books_m','books');
 		$this->load->model('listings_m', 'listings');
+		$this->load->model('authors_m', 'authors');
 		$this->load->library('isbn_lib');
 		$this->load->library('amazon_lib');
 	}
@@ -16,7 +16,13 @@ class Search extends CI_Controller {
 	//fallback function, if no function specified
 	function index()
 	{
-		echo "Index";
+		$arr = array(
+			'status' => array(
+				'status' => 'error',
+				'message' => 'Invalid function.'
+			),
+			'data' => array()
+		);
 	}
 
 	/**
@@ -25,7 +31,6 @@ class Search extends CI_Controller {
 	 * @param  isbn
 	 *         The ISBN
 	 */
-
 	function get_book_amazon($isbn)
 	{
 		// Validate. If ISBN-10, change to ISBN-13
@@ -40,10 +45,10 @@ class Search extends CI_Controller {
 			{
 				$arr = array(
 					'status' => array(
-					'status' => 'error',
-					'message' => 'Invalid ISBN'
-				),
-				'data' => array()
+						'status' => 'error',
+						'message' => 'Invalid ISBN'
+					),
+					'data' => array()
 				);
 
 				echo json_encode($arr);
@@ -58,92 +63,172 @@ class Search extends CI_Controller {
 		if (!$book)
 		{
 			$amazon = $this->amazon_lib->get_info_from_amazon($isbn);
-			
-			$book_info = array();
-		
-			$start_tags = array(
-				'<Title>',
-				'<Author>',
-				'<Publisher>',
-				'<Edition>',
-				'<FormattedPrice>',
-				'<PublicationDate>',
-				'<DetailPageURL',
-				'<LargeImage><URL>'
-			);
 
-			$end_tags = array(
-				'</Title>',
-				'</Author>',
-				'</Publisher>',
-				'</Edition>',
-				'</FormattedPrice>',
-				'</PublicationDate>',
-				'</DetailPageURL>',
-				'</URL>'
-			);
-
-			for ($i = 0; $i < sizeof($start_tags); $i++) 
+			// If there's an error in retrieval.
+			if (!$amazon)
 			{
-				$start_pos = strpos($amazon, $start_tags[$i]);
-				$end_pos = strpos(substr($amazon, $start_pos), $end_tags[$i]) + $start_pos;
-				
-				if (!$start_pos || !$end_pos)
+				$arr = array(
+					'status' => array(
+						'status' => 'error',
+						'message' => 'An error occured with retrieving books from the Amazon API.'
+					),
+					'data' => array()
+				);
+
+				echo json_encode($arr);
+				return;
+			}
+
+			// We omit author
+			$tags = array(
+				array(
+					'name' => 'title',
+					'start' => '<Title>',
+					'end' => '</Title>',
+					'required' => TRUE
+				),
+				array(
+					'name' => 'publisher',
+					'start' => '<Publisher>',
+					'end' => '</Publisher>'
+				),
+				array(
+					'name' => 'edition',
+					'start' => '<Edition>',
+					'end' => '</Edition>'
+				),
+				array(
+					'name' => 'msrp',
+					'start' => '<FormattedPrice>',
+					'end' => '</FormattedPrice>'
+				),
+				array(
+					'name' => 'year',
+					'start' => '<PublicationDate>',
+					'end' => '</PublicationDate>'
+				),
+				array(
+					'name' => 'amazon_detail_url',
+					'start' => '<DetailPageURL>',
+					'end' => '</DetailPageURL>'
+				),
+				array(
+					'name' => 'amazon_small_image',
+					'start' => '<SmallImage><URL>',
+					'end' => '</URL>'
+				),
+				array(
+					'name' => 'amazon_medium_image',
+					'start' => '<MediumImage><URL>',
+					'end' => '</URL>'
+				),
+				array(
+					'name' => 'amazon_large_image',
+					'start' => '<LargeImage><URL>',
+					'end' => '</URL>'
+				),
+			);
+
+			// Loop through each tag.
+			foreach ($tags as $tag)
+			{
+				// Get string positions
+				$start_pos = strpos($amazon, $tag['start']);
+				$end_pos = strpos(substr($amazon, $start_pos), $tag['end']) + $start_pos;
+
+				// If either are not found for whatever reason
+				if ($start_pos === FALSE || $end_pos === FALSE)
 				{
-					$what_tag = '';
-					if (!$start_pos)
+					// If true, then we bark.
+					if (isset($tag['required']))
 					{
-						$what_tag = substr(
-							$start_tags[$i],
-							1,
-							strlen($start_tags[$i]) - 2);
-					}
-					else // end_pos
-					{
-						$what_tag = substr(
-							$end_tags[$i],
-							2,
-							strlen($end_tags[$i]) - 3);
-					}
+						$arr = array(
+							'status' => array(
+								'status' => 'error',
+								'message' => 'Could not find tag for ' . $tag['name']
+							),
+							'data' => array()
+						);
 
-					$arr = array(
-						'status' => array(
-							'status' => 'error',
-							'message' => 'Could not find a '.$what_tag
-						),
-						'data' => array()
-					);
-
-					echo json_encode($arr);
-					return;		
+						echo json_encode($arr);
+						return;
+					}
 				}
 				else
 				{
-					if ($i == 4) // price
+					// Special cases
+					if ($tag['name'] === 'msrp')
 					{
-						$start_pos += 21; // Get rid of "CDN$ "
-					} 
-					else if ($i == 5) // Year
+						$start_pos += 5;
+					}
+					else if ($tag['name'] === 'year')
 					{
-						$end_pos -= 6; // Only want year
+						$end_pos -= 6;
 					}
 
-					$element = strip_tags(substr($amazon, $start_pos, ($end_pos - $start_pos)));
-					array_push($book_info, $element);
-				} // end else
-			} // end for 
-	
-			$book = array(
-				'isbn_13' => $isbn,
-				'title' => $book_info[0],
-				'author' => $book_info[1],
-				'publisher' => $book_info[2],
-				'edition' => $book_info[3],
-				'msrp' => $book_info[4],
-				'year' => $book_info[5],
-				'amazon_link' => $book_info[6],
-				'image' => $book_info[7]
-			);
+					$start_pos += strlen($tag['start']);
+
+					// Add this into book dictionary.
+					$book[$tag['name']] = substr($amazon, $start_pos, ($end_pos - $start_pos));
+				}
+			}
+
+			// Get Author(s)
+			$author_start_tag = '<Author>';
+			$author_end_tag = '</Author>';
+			$author_start_tag_length = strlen($author_start_tag);
+			$author_end_tag_length = strlen($author_end_tag);
+			$author_start_pos = strpos($amazon, '<ItemAttributes>');
+			$author_length = strpos($amazon, '</ItemAttributes>') - $author_start_pos;
+
+			// Get the first instance of ItemAttributes
+			$item_attribute = substr($amazon, $author_start_pos, $author_length);
+
+			$start_pos = 0;
+			$end_pos = 0;
+
+			$author_list = array();
+
+			// Loop through item_attribute, finding all the Authors. Stick them into a string-based list and an array.
+			do
+			{
+				$start_pos = strpos(substr($item_attribute, $end_pos), $author_start_tag);
+
+				if ($start_pos === FALSE)
+				{
+					break;
+				}
+
+				$start_pos += $end_pos;
+				$end_pos = strpos(substr($item_attribute, $start_pos), $author_end_tag) + $start_pos;
+
+				$author = substr($item_attribute, $start_pos + $author_start_tag_length, $end_pos - $start_pos - $author_start_tag_length);
+
+				// Add it into the string-based list.
+				if (isset($authors))
+				{
+					$authors .= ', ' . $author;
+				}
+				else
+				{
+					$authors = $author;
+				}
+
+				// Add it into the author_list
+				array_push($author_list, array(
+					'isbn_13' => $isbn,
+					'name' => $author
+				));
+
+				$end_pos += $author_end_tag_length;
+			} while (1);
+
+			$book['isbn_13'] = $isbn;
+			$book['authors'] = $authors;
+
+			// Insert into DB.
+			$this->books->insert_obj($book);
+			$this->authors->insert_batch($isbn, $author_list);
 
 			//TODO: Add book to database
 		} // end if(!book)

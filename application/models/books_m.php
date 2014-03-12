@@ -8,7 +8,8 @@ Class Books_m extends CI_Model
 	 */
 	function retrieve()
 	{
-		$query = $this->db->select('isbn_13, title, author, publisher, edition, msrp, year')
+		$query = $this->db->select('isbn_13, title, authors, publisher, edition, msrp, year, '
+			. 'amazon_detail_url, amazon_small_image, amazon_medium_image, amazon_large_image')
 			->from('books')
 			->order_by('isbn_13');
 
@@ -26,7 +27,8 @@ Class Books_m extends CI_Model
 			'isbn_13' => $isbn
 		);
 
-		$query = $this->db->select('isbn_13, title, author, publisher, edition, msrp, year')
+		$query = $this->db->select('isbn_13, title, authors, publisher, edition, msrp, year, '
+			. 'amazon_detail_url, amazon_small_image, amazon_medium_image, amazon_large_image')
 			->from('books')
 			->where($where)
 			->limit(1);
@@ -45,7 +47,8 @@ Class Books_m extends CI_Model
 			'isbn_13' => $isbn_13
 		);
 
-		$query = $this->db->select('isbn_13, title, author, publisher, edition, msrp, year')
+		$query = $this->db->select('isbn_13, title, authors, publisher, edition, msrp, year, '
+			. 'amazon_detail_url, amazon_small_image, amazon_medium_image, amazon_large_image')
 			->from('books')
 			->where($where)
 			->limit(1);
@@ -62,11 +65,11 @@ Class Books_m extends CI_Model
 	 * @param   title
 	 *			The book's title.
 	 * 
-	 * @param   author
+	 * @param   authors
 	 *			The author(s) (optional)
 	 * 
 	 * @param   publisher
-	 *			The publisher
+	 *			The publisher (optional)
 	 * 
 	 * @param   edition
 	 *			The edition of the book (if applicable)
@@ -76,21 +79,52 @@ Class Books_m extends CI_Model
 	 * 
 	 * @param   year
 	 *			The year the book was published (optional)
+	 * 
+	 * @param   amazon_detail_url
+	 *			The Amazon detail URL (optional)
+	 * 
+	 * @param   amazon_small_image
+	 *			The Amazon Small-sized Image (optional)
+	 * 
+	 * @param   amazon_medium_image
+	 *			The Amazon Medium-sized Image(optional)
+	 * 
+	 * @param   amazon_large_image
+	 *			The Amazon Large-sized Image (optional)
 	 *
 	 * @return  boolean
 	 */
-	function insert($isbn_13, $title, $author='', $publisher='', $edition=0, $msrp=0, $year=0)
+	function insert($isbn_13, $title, $authors=NULL, $publisher=NULL, $edition=NULL,
+		$msrp=NULL, $year=NULL, $amazon_detail_url=NULL, $amazon_small_image=NULL,
+		$amazon_medium_image=NULL, $amazon_large_image=NULL)
 	{
 		$obj = array(
 			'isbn_13' => $isbn_13,
 			'title' => $title,
-			'author' => $author,
+			'authors' => $authors,
 			'publisher' => $publisher,
 			'edition' => $edition,
 			'msrp' => $msrp,
 			'year' => $year
 		);
 
+		$this->db->insert('books', $obj);
+
+		return TRUE;
+	}
+
+	/**
+	 * Inserts a new book into the database. However, the book
+	 * object is passed in. If you do not have certain columns,
+	 * do not include it in the object.
+	 *
+	 * @param   obj
+	 *			The Book Object.
+	 *
+	 * @return  boolean
+	 */
+	function insert_obj($obj)
+	{
 		$this->db->insert('books', $obj);
 
 		return TRUE;
