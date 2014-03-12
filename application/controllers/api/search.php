@@ -12,7 +12,10 @@ class Search extends CI_Controller {
 		$this->load->library('isbn_lib');
 	}
 
-	//fallback function, if no function specified
+	/**
+	 * Fallback function if no method is provided. This should always
+	 * error out because this should not ever be called.
+	 */
 	function index()
 	{
 		$arr = array(
@@ -30,74 +33,6 @@ class Search extends CI_Controller {
 	 * @param  isbn
 	 *         The ISBN
 	 */
-	function get_book_amazon($isbn)
-	{
-		// Validate. If ISBN-10, change to ISBN-13
-		if (!$this->isbn_lib->is_isbn_13_valid($isbn))
-		{
-			if($this->isbn_lib->is_isbn_10_valid($isbn))
-			{
-				$isbn = str_replace(array('x', 'X'), '', $isbn);
-				$isbn = '978' . $isbn;
-			}
-			else
-			{
-				$arr = array(
-					'status' => array(
-						'status' => 'error',
-						'message' => 'Invalid ISBN'
-					),
-					'data' => array()
-				);
-
-				echo json_encode($arr);
-				return;
-			}
-		}
-		
-		// Retrieves book title of a given ISBN
-		$book = $this->books->retrieve_unique_book($isbn);
-
-		// If there is no such book in our database, retrieve it from a third-party library and then insert it into the database.
-		if (!$book)
-		{
-			$amazon = $this->isbn_lib->get_info_from_amazon($isbn);
-
-			// If there's an error in retrieval.
-			if (!$amazon)
-			{
-				$arr = array(
-					'status' => array(
-						'status' => 'error',
-						'message' => 'An error occured with retrieving books from the Amazon API.'
-					),
-					'data' => array()
-				);
-
-				echo json_encode($arr);
-				return;
-			}
-
-			// Insert into DB.
-			$this->books->insert_obj($amazon['book']);
-			$this->authors->insert_batch($amazon['author_list']);
-
-			$book = $amazon['book'];
-		} // end if(!book)
-
-		$arr = array(
-			'status' => array(
-				'status' => 'success',
-				'message' => ''
-			),
-			'data' => array(
-				'book' => $book
-			)
-		);
-		
-		echo json_encode($arr);
-	}
-
 	function get_book($isbn) 
 	{
 		// Validate ISBN. If ISBN-10, change to ISBN-13
@@ -129,22 +64,30 @@ class Search extends CI_Controller {
 		// library and then insert it into the database.
 		if (!$book)
 		{
-			// Get the author list and the book information via. the ISBNdb API.
-			$data = $this->isbn_lib->get_from_isbndb($isbn);
-			
+			// Get the Amazon Book Info using the library.
+			$data = $this->isbn_lib->get_info_from_amazon($isbn);
+
+			// If there's an error in retrieval, fall back to ISBNdb.
 			if (!$data)
 			{
-				$arr = array(
-					'status' => array(
-						'status' => 'error',
-						'message' => 'Could not retrieve from the ISBN API.'
-					),
-					'data' => array()
-				);
+				// Get the author list and the book information via. the ISBNdb API.
+				$data = $this->isbn_lib->get_from_isbndb($isbn);
+				
+				// If you can't get ISBNdb info, bark.
+				if (!$data)
+				{
+					$arr = array(
+						'status' => array(
+							'status' => 'error',
+							'message' => 'Could not retrieve from the ISBN API.'
+						),
+						'data' => array()
+					);
 
-				echo json_encode($arr);
-				return;
-			}
+					echo json_encode($arr);
+					return;
+				}
+			}			
 
 			// Now let's insert the book and the list of authors into the database.
 			$this->books->insert_obj($data['book']);
@@ -166,8 +109,19 @@ class Search extends CI_Controller {
 		echo json_encode($arr);
 	}
 
-	// Returns a JSON encoded array of books with a given ISBN
-	function search_book($isbn, $limit=20, $offset=0)
+	/**
+	 * Returns a JSON encoded array of listings with a given ISBN.
+	 *
+	 * @param  isbn
+	 *         The ISBN
+	 *
+	 * @param  limit
+	 *         The amount of listings you want to see.
+	 *
+	 * @param  offset
+	 *         The amount of listings we skip (or offset).
+	 */
+	function search_listings($isbn, $limit=20, $offset=0)
 	{
 		// Validate ISBN. If ISBN-10, change to ISBN-13
 		if (!$this->isbn_lib->is_isbn_13_valid($isbn))
@@ -209,7 +163,9 @@ class Search extends CI_Controller {
 		echo json_encode($arr);
 	}
 
-	// Returns a JSON encoded array of all listings
+	/**
+	 * Returns a JSON encoded array of all listings
+	 */ 
 	function get_all_listings()
 	{
 		$listings = $this->listings->retrieve_all_listings();
@@ -227,7 +183,9 @@ class Search extends CI_Controller {
 		echo json_encode($arr);
 	}
 
-	// Returns a JSON encoded array of all books
+	/**
+	 * Returns a JSON encoded array of all books
+	 */
 	function get_all_books()
 	{
 		$books = $this->books->retrieve();
