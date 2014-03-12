@@ -369,6 +369,8 @@ $config['isbndb_key'] = '';
 $config['amazon_access_key'] = '';
 $config['amazon_associate_tag'] = '';
 $config['amazon_secret_key'] = '';
+$config['amazon_hostname'] = '';
+$config['amazon_protocol'] = '';
 
 
 /* End of file config.php */

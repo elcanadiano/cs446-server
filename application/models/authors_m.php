@@ -35,7 +35,7 @@ Class Authors_m extends CI_Model
 	 *
 	 * @return  boolean
 	 */
-	function insert_batch($isbn_13, $obj)
+	function insert_batch($obj)
 	{
 		$this->db->insert_batch('authors', $obj);
 
