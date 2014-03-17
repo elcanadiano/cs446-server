@@ -7,6 +7,8 @@ class Login extends CI_Controller {
 		parent::__construct();
 		
 		$this->load->model('User_m');
+		$this->load->model('fb_users_m');
+		$this->load->library('facebook');
 	}
 
 	/**
@@ -22,6 +24,8 @@ class Login extends CI_Controller {
 			),
 			'data' => array()
 		);
+
+		echo json_encode($arr);
 	}
 
 	/**
@@ -35,10 +39,12 @@ class Login extends CI_Controller {
 	 * and do not verify the user. Send a message to the user to verify the
 	 * account, and ask them to provide information.
 	 */
-	function login()
+	function login_user($user_id)
 	{
-		$user_id = $this->request->post('');
-
+		// php error - request is not defined
+		//$user_id = $this->request->post('');
+	
+		$this->retrieve_user
 
 		$arr = array(
 			'users' => $this->User_m->retrieve(),
