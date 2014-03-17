@@ -6,7 +6,6 @@ class Login extends CI_Controller {
 	{
 		parent::__construct();
 		
-		$this->load->model('User_m');
 		$this->load->model('fb_users_m');
 		$this->load->library('facebook');
 	}
