@@ -10,6 +10,7 @@ class Search extends CI_Controller {
 		$this->load->model('listings_m', 'listings');
 		$this->load->model('authors_m', 'authors');
 		$this->load->library('isbn_lib');
+		$this->load->library('uw_bookstore');
 	}
 
 	/**
@@ -159,6 +160,37 @@ class Search extends CI_Controller {
 				'listings' => $listings
 			)
 		);
+
+		echo json_encode($arr);
+	}
+
+	/**
+	 * Returns a JSON encoded array of all courses that a book is used in a term
+	 */
+	function get_courses_for_book($isbn, $term) {
+		$courses = $this->uw_bookstore->getCoursesForBook($isbn, $term);
+		
+		$arr = array();
+		
+		if ($courses == FALSE) {
+			$arr = array(
+				'status' => array(
+					'status' => 'error',
+					'message' => 'No courses for this isbn in this term'
+				),
+				'data' => array()
+			);
+		} else {
+			$arr = array(
+				'status' => array(
+					'status' => 'success',
+					'message' => ''
+				),
+				'data' => array(
+					'courses' => $courses
+				)
+			);
+		}
 
 		echo json_encode($arr);
 	}
