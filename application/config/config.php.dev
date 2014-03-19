@@ -372,6 +372,28 @@ $config['amazon_secret_key'] = '';
 $config['amazon_hostname'] = '';
 $config['amazon_protocol'] = '';
 
+/*
+|--------------------------------------------------------------------------
+| Facebook API Keys
+|--------------------------------------------------------------------------
+|
+| App ID and Secret for Facebook APIs.
+|
+*/
+$config['appId']   = '';
+$config['secret']  = '';
+
+/*
+|--------------------------------------------------------------------------
+| Open Data API
+|--------------------------------------------------------------------------
+|
+| URL and 
+|
+*/
+$config['open_data_base_url']   = '';
+$config['open_data_key']  = '';
+
 
 /* End of file config.php */
 /* Location: ./application/config/config.php */
