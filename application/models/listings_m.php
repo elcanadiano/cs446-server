@@ -42,11 +42,13 @@ Class Listings_m extends CI_Model
 	/**
 	 * Inserts a new listing into the database.
 	 */
-	function insert($isbn_13, $listing_price, $condition=0, $is_active=FALSE)
+	function insert($isbn_13, $listing_price, $course_id=NULL, $comments=NULL, $condition=0, $is_active=FALSE)
 	{
 		$obj = array(
 			'isbn_13' => $isbn_13,
 			'listing_price' => $listing_price,
+			'course_id' => $course_id,
+			'comments' => $comments,
 			'condition' => $condition,
 			'is_active' => $is_active
 		);

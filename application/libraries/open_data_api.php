@@ -9,53 +9,30 @@
  */
 
 class Open_data_api  {
-	$baseURL = "https://api.uwaterloo.ca/v2";       // Current version of Open Data API
-	$format = ".json";                              // .json OR .xml format can be returned
-	$key = "dacd769dd10cb9e4b195989a2be137c8";      // EasyPeasyAllTheWay@gmail.com Open Data API key
-	$filePath = "results/".$term."_".$subject;
-        $call =  "/terms/$term/$subject/schedule";
-        $decodedResponse = getJSONdata($call);
-	
-	// Scrape the subjects returned from the UWaterloo Open Data API and returns an array
-	// Ensures unique entries
-	function scrape_subjects() {
-        	$subjects = array();
+	function get_course($subject, $course_catalog) {
+        // Construct the URL.
+        $url = config_item('open_data_base_url') . '/courses/' . $subject . '/' . $course_catalog . '.json?key=' . config_item('open_data_key');
 
-      		foreach ($decodedResponse["data"] as $info => $value) {
-       	        	$item = $value["subject"];
+        $contents = file_get_contents($url);
 
-                	if (! in_array($item, $array)) {
-                        	array_push($array, $item);
-                	}
-        	}
-	
-        	return $subjects;
-	}
+        $json = json_decode($contents);
 
-	// Scrape the response from the UWaterloo Open Data API and return the array
-	// This ensures unique course entries for a given subject and term
-	function scrape_course_info($decodedResponse) {
-        	$array = array();
-       		foreach ($decodedResponse["data"] as $info => $value) {
-                	$item = $value["subject"]." ".$value["catalog_number"]." - ".$value["title"];
+        // If there was an error.
+        if (!isset($json->data) || !(array)($json->data))
+        {
+            return NULL;
+        }
 
-                	if (! in_array($item, $array)) {
-                        	array_push($array, $item);
-               		}	
-        	}	
-        
-		return $array;
-	}
+        $data = $json->data;
 
-	function get_json_data($call) {
-        $properURL = $GLOBALS['baseURL'].$call.$GLOBALS['format']."?key=".$GLOBALS['key'];
+        $ret = array(
+            'course_id' => $data->course_id,
+            'subject' => $data->subject,
+            'catalog_number' => $data->catalog_number,
+            'title' => $data->title
+        );
 
-        $response = file_get_contents($properURL);
-        $decodedResponse = json_decode($response, true);
-
-        return $decodedResponse;
+        return $ret;
 	}
 
 }
-
-$this-><WHATEVERYOuWANT>

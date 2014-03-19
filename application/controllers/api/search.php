@@ -62,7 +62,7 @@ class Search extends CI_Controller {
 		$book = $this->books->retrieve_unique_book($isbn);
 
 		// If there is no such book in our database, retrieve it from a third-party
-		// library and then insert it into the database.
+		// library and then insert it into the database
 		if (!$book)
 		{
 			// Get the Amazon Book Info using the library.
