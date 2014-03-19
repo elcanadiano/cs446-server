@@ -26,7 +26,7 @@ class Uw_bookstore {
 
 		foreach (preg_split("/((\r?\n)|(\r\n?))/", $html) as $line) {
                 	$str = trim($line, " ");
-               		if (strpos($str, 'Sorry, no matches for') !== false) {
+               		if (strpos($str, 'Sorry, no matches were found') !== false) {
                 		return FALSE;
 			}
         	}
