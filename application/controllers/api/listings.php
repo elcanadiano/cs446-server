@@ -128,9 +128,4 @@ class Listings extends CI_Controller {
 
 		echo json_encode($arr);
 	}
-
-	function test($subject, $catalog_number)
-	{
-		echo json_encode($this->open_data_api->get_course($subject, $catalog_number));
-	}
 }

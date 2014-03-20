@@ -21,9 +21,44 @@ Class Listings_m extends CI_Model
 			'l.isbn_13' => $isbn
 		);
 
-		$query = $this->db->select('l.id, l.isbn_13, b.title, b.author, l.listing_price, l.condition, l.is_active')
+		$query = $this->db->select('l.id, l.isbn_13, b.title, b.authors, l.listing_price, c.subject, c.catalog_number, c.title, l.comments, l.condition, l.is_active')
 			->from('listings l')
 			->join('books b', 'b.isbn_13 = l.isbn_13', 'inner')
+			->join('courses c', 'l.course_id = c.course_id', 'left')
+			->where($where)
+			->limit($lim, $offset);
+
+		return $query->get()->result();
+	}
+
+	/**
+	 * Attempt to retrieve all listings by course, and get $lim values offsetting from $offset.
+	 *
+	 * @param   subject
+	 *			The ISBN
+	 *
+	 * @param   catalog_number
+	 *			The ISBN
+	 *
+	 * @param   lim
+	 *			The limit (for SQL). That is, get $lim records.
+	 * 
+	 * @param   offset
+	 *			The offset (for SQL)
+	 *
+	 * @return  object
+	 */
+	function retrieve_listings_by_course($subject, $catalog_number, $lim=20, $offset=0)
+	{
+		$where = array(
+			'subject' => $subject,
+			'catalog_number' => $catalog_number
+		);
+
+		$query = $this->db->select('l.id, l.isbn_13, b.title, b.authors, l.listing_price, c.subject, c.catalog_number, c.title, l.comments, l.condition, l.is_active')
+			->from('listings l')
+			->join('books b', 'b.isbn_13 = l.isbn_13', 'inner')
+			->join('courses c', 'l.course_id = c.course_id', 'inner')
 			->where($where)
 			->limit($lim, $offset);
 

@@ -122,7 +122,7 @@ class Search extends CI_Controller {
 	 * @param  offset
 	 *         The amount of listings we skip (or offset).
 	 */
-	function search_listings($isbn, $limit=20, $offset=0)
+	function get_listings_by_book($isbn, $limit=20, $offset=0)
 	{
 		// Validate ISBN. If ISBN-10, change to ISBN-13
 		if (!$this->isbn_lib->is_isbn_13_valid($isbn))
@@ -165,7 +165,42 @@ class Search extends CI_Controller {
 	}
 
 	/**
+	 * Returns a JSON encoded array of listings with a given ISBN.
+	 *
+	 * @param  subject
+	 *         The course subject (ie. CS, MATH, ARTS, ENV, ECE, etc.)
+	 *
+	 * @param  catalog_number
+	 *         The catalog number (ie. 101, 202, 344, 341, etc.)
+	 *
+	 * @param  limit
+	 *         The amount of listings you want to see.
+	 *
+	 * @param  offset
+	 *         The amount of listings we skip (or offset).
+	 */
+	function get_listings_by_course($subject, $catalog_number, $limit=20, $offset=0)
+	{
+		// Retrieves listings with a given ISBN
+		$listings = $this->listings->retrieve_listings_by_course($subject, $catalog_number, $limit, $offset);
+
+		$arr = array(
+			'status' => array(
+				'status' => 'success',
+				'message' => ''
+			),
+			'data' => array(
+				'listings' => $listings
+			)
+		);
+
+		echo json_encode($arr);
+	}
+
+	/**
 	 * Returns a JSON encoded array of all courses that a book is used in a term
+	 *
+	 * DO NOT USE, NOT SUPPORTED
 	 */
 	function get_courses_for_book($isbn, $term) {
 		$courses = $this->uw_bookstore->getCoursesForBook($isbn, $term);
@@ -197,6 +232,8 @@ class Search extends CI_Controller {
 
 	/**
 	 * Returns a JSON encoded array of all listings
+	 *
+	 * DO NOT USE, NOT SUPPORTED
 	 */ 
 	function get_all_listings()
 	{
@@ -217,6 +254,8 @@ class Search extends CI_Controller {
 
 	/**
 	 * Returns a JSON encoded array of all books
+	 *
+	 * DO NOT USE, NOT SUPPORTED
 	 */
 	function get_all_books()
 	{
