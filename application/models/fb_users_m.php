@@ -1,4 +1,12 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+
+// If we are not using PHP 5.5 or greater, we need a
+// supplementary file for all things bcrypt.
+if (PHP_VERSION_ID < 50500)
+{
+	require('application/libraries/password.php');
+}
+
 Class Fb_users_m extends CI_Model
 {
 	/**
@@ -6,92 +14,142 @@ Class Fb_users_m extends CI_Model
 	 *
 	 * @return  object
 	 */
-	function retrieve_user($user_id)
+	function retrieve_by_user_id($user_id)
 	{
 		$where = array(
 			'user_id' => $user_id
 		);
 
-		$query = $this->db->select('user_id, access_token, full_name, email, pic_square,'
-			. ' pic_small, phone_number, is_verified')
+		$query = $this->db->select('user_id, access_token, first_name, middle_name, last_name,'
+			. ' email, pic_square, pic_small, phone_number, is_verified')
 			->from('fb_users')
 			->where($where)
 			->limit(1);
 
-		return $query->get()->result();
+		$result = $query->get()->result();
+
+		if ($result)
+		{
+			return $result[0];
+		}
+
+		return NULL;
 	}
 
 	/**
-	 * Inserts a new book into the database.
+	 * Inserts a new, unverified Facebook user into the database.
 	 *
-	 * @param   isbn_13
-	 *			The ISBN
+	 * @param   user_id
+	 *			The User ID.
 	 *
-	 * @param   title
-	 *			The book's title.
+	 * @param   access_token
+	 *			The access token.
 	 * 
-	 * @param   authors
-	 *			The author(s) (optional)
+	 * @param   first_name
+	 *			The first name.
 	 * 
-	 * @param   publisher
-	 *			The publisher (optional)
+	 * @param   middle_name
+	 *			The middle name.
 	 * 
-	 * @param   edition
-	 *			The edition of the book (if applicable)
+	 * @param   last_name
+	 *			The last name.
 	 * 
-	 * @param   msrp
-	 *			The retail price (optional)
+	 * @param   pic_square
+	 *			The user's Square-sized Facebook image (50x50)
 	 * 
-	 * @param   year
-	 *			The year the book was published (optional)
-	 * 
-	 * @param   amazon_detail_url
-	 *			The Amazon detail URL (optional)
-	 * 
-	 * @param   amazon_small_image
-	 *			The Amazon Small-sized Image (optional)
-	 * 
-	 * @param   amazon_medium_image
-	 *			The Amazon Medium-sized Image(optional)
-	 * 
-	 * @param   amazon_large_image
-	 *			The Amazon Large-sized Image (optional)
+	 * @param   pic_small
+	 *			The user's Small-sized Facebook image max(50x150)
 	 *
 	 * @return  boolean
 	 */
-	function insert($isbn_13, $title, $authors=NULL, $publisher=NULL, $edition=NULL,
-		$msrp=NULL, $year=NULL, $amazon_detail_url=NULL, $amazon_small_image=NULL,
-		$amazon_medium_image=NULL, $amazon_large_image=NULL)
+	function insert($user_id, $access_token, $first_name,
+		$middle_name, $last_name, $pic_square, $pic_small, $access_code)
 	{
 		$obj = array(
-			'isbn_13' => $isbn_13,
-			'title' => $title,
-			'authors' => $authors,
-			'publisher' => $publisher,
-			'edition' => $edition,
-			'msrp' => $msrp,
-			'year' => $year
+			'user_id' => $user_id,
+			'access_token' => $access_token,
+			'first_name' => $first_name,
+			'middle_name' => $middle_name,
+			'last_name' => $last_name,
+			'pic_square' => $pic_square,
+			'pic_small' => $pic_small,
+			'access_code' => $this->encr($access_code)
 		);
 
-		$this->db->insert('books', $obj);
+		$this->db->insert('fb_users', $obj);
 
 		return TRUE;
 	}
 
 	/**
-	 * Inserts a new book into the database. However, the book
-	 * object is passed in. If you do not have certain columns,
-	 * do not include it in the object.
+	 * Checks for the user's access code is correct.
+	 *
+	 * @param   user_id
+	 *			The User ID.
+	 *
+	 * @param   access_code
+	 *			The Access Code.
+	 *
+	 * @return  boolean
+	 */
+	function verify_access_code($user_id, $access_code)
+	{
+		$where = array(
+			'user_id' => $user_id
+		);
+
+		$this->db->select('user_id')
+			->from('fb_users')
+			->where($where)
+			->limit(1);
+
+		$res = $query->get->result();
+
+		if ($res)
+		{
+			$row = $res[0];
+			$hash = $result[0]->access_code;
+
+			return password_verify($access_code, $hash);
+		}
+
+		return FALSE;
+	}
+
+	/**
+	 * Updates a user's name and pictures.
+	 *
+	 * @param   user_id
+	 *			The User ID.
 	 *
 	 * @param   obj
 	 *			The Book Object.
 	 *
 	 * @return  boolean
 	 */
-	function insert_obj($obj)
+	function update_user($user_id, $obj)
 	{
-		$this->db->insert('books', $obj);
+		$where = array(
+			'user_id' => $user_id
+		);
+
+		$this->db->where($where)->update('fb_users', $obj);
 
 		return TRUE;
+	}
+
+	/**
+	 * Encrypts a password.
+	 *
+	 * @param	string $password
+	 *			The password
+	 *
+	 * @return	string
+	 *			The encrypted version of the password.
+	 */
+	private function encr($password)
+	{
+		return password_hash($password, PASSWORD_BCRYPT);
+		//return hash('sha256', hash('sha256', $password));
 	}
 }

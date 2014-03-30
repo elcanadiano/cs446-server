@@ -383,6 +383,16 @@ $config['amazon_protocol'] = '';
 $config['appId']   = '';
 $config['secret']  = '';
 
+/*
+|--------------------------------------------------------------------------
+| Open Data API
+|--------------------------------------------------------------------------
+|
+| URL and 
+|
+*/
+$config['open_data_base_url']   = '';
+$config['open_data_key']  = '';
 
 /* End of file config.php */
 /* Location: ./application/config/config.php */

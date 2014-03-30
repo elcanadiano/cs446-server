@@ -17,26 +17,6 @@ Class Books_m extends CI_Model
 	}
 
 	/**
-	 * Retrieve a unique book.
-	 *
-	 * @return  object
-	 */
-	function retrieve_unique_book($isbn) 
-	{
-		$where = array(
-			'isbn_13' => $isbn
-		);
-
-		$query = $this->db->select('isbn_13, title, authors, publisher, edition, msrp, year, '
-			. 'amazon_detail_url, amazon_small_image, amazon_medium_image, amazon_large_image')
-			->from('books')
-			->where($where)
-			->limit(1);
-		
-		return $query->get()->result();
-	}
-
-	/**
 	 * Attempt to retrieve a book by ISBN.
 	 *
 	 * @return  object
@@ -52,8 +32,15 @@ Class Books_m extends CI_Model
 			->from('books')
 			->where($where)
 			->limit(1);
+		
+		$result = $query->get()->result();
 
-		return $query->get()->result();
+		if ($result)
+		{
+			return $result[0];
+		}
+
+		return NULL;
 	}
 
 	/**
