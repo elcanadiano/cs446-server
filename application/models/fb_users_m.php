@@ -98,17 +98,16 @@ Class Fb_users_m extends CI_Model
 			'user_id' => $user_id
 		);
 
-		$this->db->select('user_id')
+		$query = $this->db->select('access_code')
 			->from('fb_users')
 			->where($where)
 			->limit(1);
 
-		$res = $query->get->result();
+		$res = $query->get()->result();
 
 		if ($res)
 		{
-			$row = $res[0];
-			$hash = $result[0]->access_code;
+			$hash = $res[0]->access_code;
 
 			return password_verify($access_code, $hash);
 		}

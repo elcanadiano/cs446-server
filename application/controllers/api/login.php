@@ -7,8 +7,9 @@ class Login extends CI_Controller {
 		parent::__construct();
 		
 		$this->load->model('User_m', 'users');
-		$this->load->model('Fb_user_m', 'fb_users');
+		$this->load->model('Fb_users_m', 'fb_users');
 		$this->load->library('password_generator');
+		$this->load->library('facebook');
 	}
 
 	/**
@@ -37,11 +38,10 @@ class Login extends CI_Controller {
 	 * and do not verify the user. Send a message to the user to verify the
 	 * account, and ask them to provide information.
 	 */
-	function login()
+	function fb_login()
 	{
-		$user_id = $this->request->post('user_id');
-		$access_token = $this->request->post('access_token');
-
+		$user_id = $this->input->get_post('user_id');
+		$access_token = $this->input->get_post('access_token');
 		// No User ID or Access Token.
 		if (!$user_id || !$access_token)
 		{
@@ -73,7 +73,10 @@ class Login extends CI_Controller {
 					'message' => 'Invalid Access Token or FQL Error.'
 				),
 				'data' => array(
-					'FacebookApiException' => $e
+					'FacebookApiException' => array(
+						'result' => $e->getResult(),
+						'type' => $e->getType()
+					)
 				)
 			);
 
@@ -81,7 +84,9 @@ class Login extends CI_Controller {
 			return;
 		}
 
-		if (!isset($fb_user->data))
+		//echo json_encode($fb_user), "\n\n";
+
+		if (!isset($fb_user[0]))
 		{
 			$arr = array(
 				'status' => array(
@@ -95,7 +100,7 @@ class Login extends CI_Controller {
 			return;
 		}
 
-		$user_data = $fb_user->data[0];
+		$user_data = $fb_user[0];
 
 		// Retrieve the user.
 		$user = $this->fb_users->retrieve_by_user_id($user_id);
@@ -106,9 +111,9 @@ class Login extends CI_Controller {
 		if (!$user)
 		{
 			// Insert it to the DB. At this time, the user is verified.
-			$this->fb_users->insert($user_id, $access_token, $user_data->first_name,
-				$user_data->middle_name, $user_data->last_name,
-				$user_data->pic_square, $user_data->pic_small, $new_access_code);
+			$this->fb_users->insert($user_id, $access_token, $user_data['first_name'],
+				$user_data['middle_name'], $user_data['last_name'],
+				$user_data['pic_square'], $user_data['pic_small'], $new_access_code);
 
 
 			$arr = array(
@@ -127,7 +132,8 @@ class Login extends CI_Controller {
 		}
 
 		// Update the user's name
-		$this->fb_users->update_user($user_id, $new_access_code, $user_data);
+		$user_data['access_code'] = $new_access_code;
+		$this->fb_users->update_user($user_id, $user_data);
 
 		// If the user is verified, then we give them the user data.
 		if ($user->is_verified)
@@ -141,7 +147,7 @@ class Login extends CI_Controller {
 				'data' => array(
 					'user' => $user,
 					'access_code' => $new_access_code
-				);
+				)
 			);
 
 			echo json_encode($arr);
@@ -169,10 +175,10 @@ class Login extends CI_Controller {
 	 */
 	function verify()
 	{
-		$user_id = $this->request->post('user_id');
-		$email = $this->request->post('email');
-		$phone_number = $this->request->post('phone_number');
-		$access_code = $this->request->post('access_code');
+		$user_id = $this->input->get_post('user_id');
+		$email = $this->input->get_post('email');
+		$phone_number = $this->input->get_post('phone_number');
+		$access_code = $this->input->get_post('access_code');
 
 		// TODO: Convert the phone number to NANP format, error out
 		// if in invalid form.
@@ -233,9 +239,8 @@ class Login extends CI_Controller {
 				'code' => 0
 			),
 			'data' => array(
-				'user' => $user,
-				'access_code' => $new_access_code
-			);
+				'user' => $user
+			)
 		);
 
 		echo json_encode($arr);
