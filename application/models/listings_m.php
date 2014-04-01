@@ -23,10 +23,12 @@ Class Listings_m extends CI_Model
 
 		$query = $this->db->select('l.id, l.isbn_13, b.title book_title, b.authors,'
 			. ' l.listing_price, c.subject, c.catalog_number, c.title course_title,'
-			. ' l.comments, l.condition, l.is_active')
+			. ' l.comments, l.condition, l.is_active, t.first_name, t.middle_name,'
+			. ' t.last_name, t.phone_number, t.email')
 			->from('listings l')
 			->join('books b', 'b.isbn_13 = l.isbn_13', 'inner')
 			->join('courses c', 'l.course_id = c.course_id', 'left')
+			->join('temp_contact_info t', 'l.id = t.lid', 'left')
 			->where($where)
 			->limit($lim, $offset);
 
@@ -59,10 +61,12 @@ Class Listings_m extends CI_Model
 
 		$query = $this->db->select('l.id, l.isbn_13, b.title book_title, b.authors,'
 			. ' l.listing_price, c.subject, c.catalog_number, c.title course_title,'
-			. ' l.comments, l.condition, l.is_active')
+			. ' l.comments, l.condition, l.is_active, t.first_name, t.middle_name,'
+			. ' t.last_name, t.phone_number, t.email')
 			->from('listings l')
 			->join('books b', 'b.isbn_13 = l.isbn_13', 'inner')
 			->join('courses c', 'l.course_id = c.course_id', 'inner')
+			->join('temp_contact_info t', 'l.id = t.lid', 'left')
 			->where($where)
 			->limit($lim, $offset);
 

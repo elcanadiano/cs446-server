@@ -9,6 +9,7 @@ class Listings extends CI_Controller {
 		$this->load->model('books_m','books');
 		$this->load->model('listings_m', 'listings');
 		$this->load->model('courses_m', 'courses');
+		$this->load->model('temp_contact_info_m', 'temp_contact_info');
 		$this->load->library('open_data_api');
 	}
 
@@ -39,6 +40,13 @@ class Listings extends CI_Controller {
 		$catalog_number = trim($this->input->get_post('catalog_number')); // Pass in as 1 or 0.
 		$subject = trim($this->input->get_post('subject')); // Pass in as 1 or 0.
 		$comments = $this->input->get_post('comments');
+
+		// Extra contact info. TEMPORARY
+		$first_name = $this->input->get_post('first_name');
+		$middle_name = $this->input->get_post('middle_name');
+		$last_name = $this->input->get_post('last_name');
+		$phone_number = $this->input->get_post('phone_number');
+		$email = $this->input->get_post('email');
 
 		if (!$isbn_13)
 		{
@@ -120,9 +128,11 @@ class Listings extends CI_Controller {
 			'is_active' => $is_active
 		);
 
-		$id = $this->listings->insert_obj($insert_obj);
+		$lid = $this->listings->insert_obj($insert_obj);
 
-		$insert_obj['id'] = $id;
+		$this->temp_contact_info->insert($lid, $first_name, $middle_name, $last_name, $phone_number, $email);
+
+		$insert_obj['id'] = $lid;
 
 		if (!isset($status))
 		{
