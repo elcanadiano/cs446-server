@@ -141,4 +141,24 @@ class Listings extends CI_Controller {
 
 		echo json_encode($arr);
 	}
+
+	/**
+	 * Post a listing to the database.
+	 */
+	function delete()
+	{
+		$lid = $this->input->get_post('lid');
+
+		$this->listings->delete($lid);
+
+		$arr = array(
+			'status' => array(
+				'status' => 'success',
+				'message' => 'Listing Succesfully Deleted!'
+			),
+			'data' => array()
+		);
+	
+		echo json_encode($arr);
+	}
 }

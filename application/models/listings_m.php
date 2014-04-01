@@ -106,4 +106,18 @@ Class Listings_m extends CI_Model
 
 		return $this->db->insert_id();
 	}
+
+	/**
+	 * Deletes a listing item from the database.
+	 */
+	function delete($lid)
+	{
+		$where = array(
+			'id' => $lid
+		);
+
+		$this->db->where($where)->delete('listings');
+
+		return TRUE;
+	}
 }
