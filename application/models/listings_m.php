@@ -57,7 +57,9 @@ Class Listings_m extends CI_Model
 			'catalog_number' => $catalog_number
 		);
 
-		$query = $this->db->select('l.id, l.isbn_13, b.title, b.authors, l.listing_price, c.subject, c.catalog_number, c.title, l.comments, l.condition, l.is_active')
+		$query = $this->db->select('l.id, l.isbn_13, b.title book_title, b.authors,'
+			. ' l.listing_price, c.subject, c.catalog_number, c.title course_title,'
+			. ' l.comments, l.condition, l.is_active')
 			->from('listings l')
 			->join('books b', 'b.isbn_13 = l.isbn_13', 'inner')
 			->join('courses c', 'l.course_id = c.course_id', 'inner')
