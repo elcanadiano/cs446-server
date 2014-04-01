@@ -111,7 +111,18 @@ class Listings extends CI_Controller {
 		}
 
 		// Attempt to insert.
-		$this->listings->insert($isbn_13, $listing_price, $course_id, $comments, $condition, $is_active);
+		$insert_obj = array(
+			'isbn_13' => $isbn_13,
+			'listing_price' => $listing_price,
+			'course_id' => $course_id,
+			'comments' => $comments,
+			'condition' => $condition,
+			'is_active' => $is_active
+		);
+
+		$id = $this->listings->insert_obj($insert_obj);
+
+		$insert_obj['id'] = $id;
 
 		if (!isset($status))
 		{
@@ -123,7 +134,9 @@ class Listings extends CI_Controller {
 
 		$arr = array(
 			'status' => $status,
-			'data' => array()
+			'data' => array(
+				'insert_obj' => $insert_obj
+			)
 		);
 
 		echo json_encode($arr);

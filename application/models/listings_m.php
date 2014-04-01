@@ -94,6 +94,16 @@ Class Listings_m extends CI_Model
 
 		$this->db->insert('listings', $obj);
 
-		return TRUE;
+		return $this->db->insert_id();
+	}
+
+	/**
+	 * Inserts a new listing object into the database.
+	 */
+	function insert_obj($obj)
+	{
+		$this->db->insert('listings', $obj);
+
+		return $this->db->insert_id();
 	}
 }
